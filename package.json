@@ -25,9 +25,13 @@
     "inquirer": "^12.7.0",
     "keytar": "^7.9.0",
     "listr": "^0.14.3",
+    "pm2": "^6.0.8",
     "progress": "^2.0.3",
     "shelljs": "^0.10.0",
     "terminal-kit": "^3.1.2",
     "typewriter-effect": "^2.22.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
