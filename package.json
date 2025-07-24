@@ -2,10 +2,13 @@
   "name": "cli-brox",
   "version": "1.0.0",
   "description": "uma CLI que vai servir como centro do meu ambiente de desenvolvimento.",
-  "main": "app.js",
+  "main": "cli.js",
+  "bin":{
+    "brox":"./cli.js"
+  },
   "scripts": {
-    "start":"./app.js",
-    "dev": "nodemon app.js"
+    "start":"./cli.js",
+    "dev": "nodemon cli.js"
   },
   "author": "Alexandre Junqueiro",
   "license": "ISC",
