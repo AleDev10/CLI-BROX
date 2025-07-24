@@ -3,20 +3,21 @@
   "version": "1.0.0",
   "description": "uma CLI que vai servir como centro do meu ambiente de desenvolvimento.",
   "main": "cli.js",
-  "bin":{
-    "brox":"./cli.js"
+  "bin": {
+    "brox": "./cli.js"
   },
   "scripts": {
-    "start":"./cli.js",
+    "start": "./cli.js",
     "dev": "nodemon cli.js"
   },
   "author": "Alexandre Junqueiro",
   "license": "ISC",
   "dependencies": {
+    "@inquirer/prompts": "^7.7.1",
     "@oclif/core": "^4.5.0",
     "bcryptjs": "^3.0.2",
     "blessed": "^0.1.81",
-    "chalk": "^5.4.1",
+    "chalk": "^4.1.2",
     "cli-box": "^6.0.11",
     "cli-spinner": "^0.2.10",
     "commander": "^14.0.0",
@@ -26,6 +27,7 @@
     "express": "^5.1.0",
     "figlet": "^1.8.1",
     "fs-extra": "^11.3.0",
+    "giz": "^0.3.1",
     "gluegun": "^5.2.0",
     "inquirer": "^12.7.0",
     "keytar": "^7.9.0",
@@ -34,7 +36,8 @@
     "progress": "^2.0.3",
     "shelljs": "^0.10.0",
     "terminal-kit": "^3.1.2",
-    "typewriter-effect": "^2.22.0"
+    "typewriter-effect": "^2.22.0",
+    "yargs-parser": "^22.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
