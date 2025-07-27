@@ -12,8 +12,11 @@
   "author": "Alexandre Junqueiro",
   "license": "ISC",
   "dependencies": {
+    "better-sqlite3": "^12.2.0",
     "blessed": "^0.1.81",
+    "blessed-contrib": "^4.11.0",
     "chalk": "^4.1.2",
+    "figlet": "^1.8.2",
     "fs-extra": "^11.3.0",
     "giz": "^0.3.1",
     "shelljs": "^0.10.0"
