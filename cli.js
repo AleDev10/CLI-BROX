@@ -1,68 +1,78 @@
 #!/usr/bin/env node
 
-//importações
-const readline = require('readline')
-const inquirer = require("@inquirer/prompts");
-const yp = require("yargs-parser");
+const blessed = require("blessed");
 const giz = require("chalk");
-const figlet = require("figlet");
-const { stdin, stdout } = require('process');
 
-const cli = readline.createInterface({
-    input:stdin,
-    output:stdout,
-    prompt:giz.white.bgRed('BROX@§:')
+/*configurações gerais*/
+const screen = blessed.screen({
+  smartCSR: true,
 });
 
-async function pergunta() {
-    await inquirer.input({ message: "Enter your name" })
-    try {
-        cli.prompt();
-    } catch (error) {
-        console.log(error);
-    }
+/*elementos*/
+const box = blessed.box({
+  top: "center",
+  left: "center",
+  width: "100%",
+  height: "100%",
+  border: { type: "line" },
+  style: {
+    fg: "white",
+    bg: "blue",
+  },
+});
+
+const input = blessed.textbox({
+  top: '100%-5',
+  left: "2%",
+  width: "50%",
+  height: 3,
+  border: { type: "line" },
+  inputOnFocus: true, // Permite digitar ao focar
+  value: giz.white.bgGreen.bold("BROX@>"),
+});
+
+const logsMain = blessed.log({
+  top: '0%+2', 
+  left: '2%',
+  width: '50%', 
+  height: 22,
+  border: 'line',
+  scrollable: true,
+  label:'Terminal'
+});
+
+/*funções */
+function resetarInput() {
+  input.setValue(giz.white.bgGreen.bold("BROX@>"));
+  screen.render();
+  input.focus();
 }
 
-async function iniciarCLI() {
-  console.clear();
+/*eventos*/
+box.key(["escape", "C-c"], function (ch, key) {
+  return process.exit(0);
+});
 
-  console.log(
-    await figlet.text("BROX", {
-      font: "Standard",
-      horizontalLayout: "default",
-      verticalLayout: "default",
-      width: 80,
-      whitespaceBreak: true,
-    })
-  );
-  try {
-    console.log(giz.italic("O centro de todas as operações"))
-    cli.prompt();
-  } catch (err) {
-    console.log("Something went wrong...");
-    console.dir(err);
+input.key("enter", () => {
+  const texto = input.getValue().slice(35);
+  const info = box.getContent();
+  const logtxt = '@\>';
+  logsMain.add(`${logtxt} ${info} ${texto}`);
+  resetarInput();
+});
+input.key("backspace", () => {
+  const texto = input.getValue();
+  if (texto.length == 34) {
+    resetarInput();
   }
-}
-
-cli.on("line",(data)=>{
-    if (data==='') {
-        cli.prompt();
-    } else {
-        let parse = yp(data);
-        let [comando,...args]= parse._;
-        console.log('comando: '+comando);
-        console.log('args: '+args);
-        console.log('flags: '+parse);
-        cli.prompt();
-        if (comando=='pf') {
-            pergunta();
-        }
-    }
 });
 
-cli.on("close",()=>{
-    process.exit(0)
-});
+/*Adiciona os elementos à tela */
+screen.append(box);
+screen.append(input);
+screen.append(logsMain);
 
 
-iniciarCLI();
+/*Renderiza a tela e foca no input */
+screen.render();
+input.focus();

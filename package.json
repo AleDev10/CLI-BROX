@@ -36,10 +36,6 @@
     "progress": "^2.0.3",
     "shelljs": "^0.10.0",
     "terminal-kit": "^3.1.2",
-    "typewriter-effect": "^2.22.0",
-    "yargs-parser": "^22.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.10"
+    "typewriter-effect": "^2.22.0"
   }
 }
