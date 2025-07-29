@@ -12,13 +12,11 @@ const screen = blessed.screen({
   title: 'CLI BROX'
 });
 
-let texto;
-
-figlet.text('HELLO', { font: 'Ghost' }, function (err, data) {
-  if (err) throw err;
-  texto = data;
+const asciiArt = figlet.textSync('CLI BROX', {
+  font: 'Standard',
+  horizontalLayout: 'default',
+  verticalLayout: 'default'
 });
-
 
 /*elementos*/
 const box = blessed.box({
@@ -31,57 +29,6 @@ const box = blessed.box({
     fg: "white",
     bg: "#262626",
   },
-});
-
-const boxPrompt = blessed.box({
-  parent: box,
-  bottom: 1,
-  left: "2%",
-  width: "50%",
-  height: 3,
-  label:'Prompt',
-  border: { type: "line" },
-  style:{
-    border:{
-      fg:'#F21B2D'
-    }
-  }
-});
-
-const input = blessed.textbox({
-  parent: boxPrompt,
-  top: 0,
-  left: "15%",
-  width: '70%',
-  height: 1,
-  border: false,
-  inputOnFocus: true, // Permite digitar ao focar
-  style:{
-    fg: '#D9D9D9',
-  }
-});
-
-const textPrompt = blessed.text({
-  parent: boxPrompt,
-  top: 0,
-  left: "1%",
-  width: 'shrink',
-  height: 1,
-  border: false,
-  content: giz.hex('#D9D9D9').bold(" BROX@> "),
-  style:{
-    bg: '#F21B2D',
-  }
-});
-
-const logsMain = blessed.log({
-  parent: box,
-  top: '20%', 
-  left: '2%',
-  width: '50%', 
-  height: '60%',
-  border: 'line',
-  label: 'Logs',
 });
 
 const line = blessed.line({
@@ -111,23 +58,135 @@ const atalhos = blessed.text({
   width: 'shrink',
   height: 1,
   tags: true,
-  content: '{#f21b2d-bg}ESC:{/#f21b2d-bg}'+'{bold}{#262626-bg} Sair {/#262626-bg}{/bold}'+'{#f21b2d-bg}|{/#f21b2d-bg}'+'{#f21b2d-bg}F1:{/#f21b2d-bg}'+'{bold}{#262626-bg} Ajuda {/#262626-bg}{/bold}',
+  content: '{#f21b2d-bg}ESC:{/#f21b2d-bg}'+'{bold}{#262626-bg} Sair {/#262626-bg}{/bold}'+'{#f21b2d-bg}|{/#f21b2d-bg}'+'{#f21b2d-bg}ALT+F1:{/#f21b2d-bg}'+'{bold}{#262626-bg} Ajuda {/#262626-bg}{/bold}',
   style:{
     fg: '#D9D9D9',
   }
 });
 
-const titulo = blessed.bigtext({
+const titulo = blessed.text({
   parent: box,
-  top: 'center',
-  left: 'center',
-  width: '20%',
-  height: 3,
-  content: texto,
+  content: asciiArt,
+  top: '8%',
+  left: '2%',
+  shrink: true,
   style: {
-    fg: '#F21B2D',
+    bg: 'black'
   }
 });
+
+const logs = blessed.log({
+  parent: box,
+  top: '30%', 
+  left: '2%',
+  width: '50%', 
+  height: '50%',
+  border: 'line',
+  label: 'Logs',
+  keys:true,
+  interactive:true,
+  scrollable:true,
+
+});
+
+const boxPrompt = blessed.box({
+  parent: box,
+  bottom: 1,
+  left: "2%",
+  width: "50%",
+  height: 3,
+  label:'Prompt',
+  border: { type: "line" },
+  style:{
+    border:{
+      fg:'#F21B2D'
+    }
+  }
+});
+
+const textPrompt = blessed.text({
+  parent: boxPrompt,
+  top: 0,
+  left: "1%",
+  width: 'shrink',
+  height: 1,
+  border: false,
+  content: giz.hex('#D9D9D9').bold(" BROX@> "),
+  style:{
+    bg: '#F21B2D',
+  }
+});
+
+const input = blessed.textbox({
+  parent: boxPrompt,
+  top: 0,
+  left: "15%",
+  width: '70%',
+  height: 1,
+  border: false,
+  inputOnFocus: true, // Permite digitar ao focar
+  style:{
+    fg: '#D9D9D9',
+  }
+});
+
+const processamento = blessed.progressbar({
+  parent: box,
+  top: '10%',
+  right: 2,
+  width: '44%',
+  height: 3,
+  border: { type: "line" },
+  label: 'Processamento',
+  orientation: 'horizontal',
+  filled: 50,
+  ch: '█',
+  value:  0,
+  style: {
+    bar: {
+      bg: '#F21B2D'
+    },
+    border: {
+      fg: '#F21B2D'
+    },
+  }
+});
+
+const navegacao = blessed.list({
+  parent: box,
+  items:['Novo Projeto','Servidores'],
+  top: '24%',
+  right:2,
+  width:'44%',
+  height:6,
+  keys:true,
+  scrollable:true,
+  interactive:true,
+  label:'Navegação',
+  border:{type:'line'},
+  style:{
+    item:{fg:'#D9D9D9'},
+    selected:{bg:'#F21B2D',}
+  }
+});
+
+const informação = blessed.textarea({
+  parent:box,
+  bottom:1,
+  right:2,
+  width:'44%',
+  height:13,
+  keys:true,
+  inputOnFocus:false,
+  scrollable:true,
+  interactive:true,
+  value:'Cria um projeto usando um templete',
+  label:'Informações',
+  border:{type:'line'},
+  fg:'#D9D9D9'
+});
+
+
 
 /*funções */
 function resetarInput() {
@@ -136,24 +195,24 @@ function resetarInput() {
   input.focus();
 }
 
+
 /*eventos*/
-box.key(["escape", "C-c", 'q'], function (ch, key) {
+box.key(["escape", "C-c", 'f1'], function (ch, key) {
   return process.exit(0);
 });
 
-input.key(["escape", "C-c"], function (ch, key) {
+input.key(["escape", "C-c", 'f1'], function (ch, key) {
   return process.exit(0);
 });
 input.key("enter", () => {
-  const texto = input.getValue();
-  const logtxt = '@\>';
-  logsMain.log(`${logtxt} ${texto}`);
+  const comando = input.getValue();
+  const marcaLog = '@\>';
+  logs.log(`${marcaLog} ${comando}`);
   resetarInput();
 });
 
-/*Adiciona os elementos à tela */
+/*Adiciona o elemento principal à tela */
 screen.append(box);
 
 /*Renderiza a tela e foca no input */
-screen.render();
-input.focus();
+resetarInput()
