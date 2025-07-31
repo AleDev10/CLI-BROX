@@ -6,6 +6,7 @@ const giz = require("chalk");
 const { fonts } = require("figlet");
 const figlet = require("figlet");
 const pkg = require("./package.json");
+const parser = require("yargs-parser");
 
 /*variaveis globais*/
 const argumento = process.argv.slice(2);
@@ -217,10 +218,46 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
   }
 
   function validacaoDoInput() {
-    const comando = entrada.getValue();
-    const marcaSaida = "@>";
-    saida.log(`${marcaSaida} ${comando}`);
+    const valorComando = entrada.getValue().toLowerCase().trim();
+    const comando = parser(valorComando.split(" "));
+    analisarComando(comando);
     rodarProjeto();
+  }
+
+  function analisarComando(comando) {
+    const comandoChave = comando._[0];
+    const argumentoComando = comando._[1] || "";
+    const comandoCompleto = `${comandoChave} ${argumentoComando}`;
+
+    if (comandoChave === "") {
+      saida.log("@>");
+      return "";
+    } else if (argumentoComando !== "") {
+      switch (comandoCompleto) {
+        case "menu ativo":
+          saida.log("@>" + "Menu foi ativado");
+          return "";
+        default:
+          saida.log(
+            "@>" + "ERRO: Comando " + comandoCompleto + " desconhecido"
+          );
+          return "";
+      }
+    } else {
+      switch (comandoChave) {
+        case "menu":
+          saida.log("@>" + "Menu ?");
+          return "";
+        case "cls":
+          saida.setContent("");
+          return "";
+        default:
+          saida.log(
+            "@>" + "ERRO: Comando " + comandoCompleto + " desconhecido"
+          );
+          return "";
+      }
+    }
   }
 
   /*eventos*/
