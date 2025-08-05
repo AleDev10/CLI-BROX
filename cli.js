@@ -7,10 +7,25 @@ const { fonts } = require("figlet");
 const figlet = require("figlet");
 const pkg = require("./package.json");
 const parser = require("yargs-parser");
+const {
+  informacoesMenu,
+  tiposMenu,
+  menuPrincipal,
+} = require("./src/commands/menu");
 
 /*variaveis globais*/
 const argumento = process.argv.slice(2);
-let itensMenu = ["Novo Projeto", "Servidores", "<-Voltar"];
+let estadoMenu = {
+  estado: false,
+  menuAberto: {
+    nome: "",
+    posicao: "",
+  },
+  subMenu: {
+    nome: "",
+    posicao: "",
+  },
+};
 
 /*verificação do comando principal */
 if (argumento.includes("-v") || argumento.includes("--version")) {
@@ -174,7 +189,7 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
 
   const navegacao = blessed.list({
     parent: caixaPrincipal,
-    items: itensMenu,
+    items: menuPrincipal,
     top: "24%",
     right: 2,
     width: "44%",
@@ -182,6 +197,8 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
     keys: true,
     scrollable: true,
     interactive: true,
+    focusable: true,
+    inputOnFocus: false,
     label: "Navegação",
     border: { type: "line" },
     style: {
@@ -201,7 +218,8 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
     inputOnFocus: false,
     scrollable: true,
     interactive: true,
-    value: "Cria um projeto usando um templete",
+    tags: true,
+    value: "",
     label: "Informações",
     border: { type: "line" },
     style: {
@@ -221,7 +239,16 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
     const valorComando = entrada.getValue().toLowerCase().trim();
     const comando = parser(valorComando.split(" "));
     analisarComando(comando);
-    rodarProjeto();
+  }
+
+  function desativarTeclasEntrada(estado) {
+    if (estado) {
+      entrada.options.inputOnFocus = true;
+      caixaDaEntrada.options.style.border.fg = "#F21B2D";
+    } else {
+      entrada.options.inputOnFocus = false;
+      caixaDaEntrada.options.style.border.fg = "#d9d9d9";
+    }
   }
 
   function analisarComando(comando) {
@@ -234,63 +261,127 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
       return "";
     } else if (argumentoComando !== "") {
       switch (comandoCompleto) {
-        case "menu ativo":
+        case "menu ativar":
           saida.log("@>" + "Menu foi ativado");
+          desativarTeclasEntrada(false);
+          estadoMenu.estado = true;
+          entrada.setValue('');
+          navegacao.focus();
+          return "";
+        case "menu a":
+          saida.log("@>" + "Menu foi ativado");
+          desativarTeclasEntrada(false);
+          estadoMenu.estado = true;
+          entrada.setValue('');
+          navegacao.focus();
+          return "";
+        case "menu ?":
+          saida.log("@>" + "Menu ?");
+          informação.setValue(informacoesMenu());
+          rodarProjeto();
           return "";
         default:
           saida.log(
             "@>" + "ERRO: Comando " + comandoCompleto + " desconhecido"
           );
+          rodarProjeto();
           return "";
       }
     } else {
       switch (comandoChave) {
         case "menu":
           saida.log("@>" + "Menu ?");
+          informação.setValue(informacoesMenu());
+          rodarProjeto();
           return "";
         case "cls":
           saida.setContent("");
+          rodarProjeto();
           return "";
         default:
           saida.log(
             "@>" + "ERRO: Comando " + comandoCompleto + " desconhecido"
           );
+          rodarProjeto();
           return "";
       }
     }
   }
 
+  function comandosGlobais(key) {
+    if (key.name === "f1") {
+      informação.setValue("");
+      informação.setValue(`
+              Ajudo do BROX
+Sintaxe geral dos comandos
+        [comando] [argumentos] [opções]
+
+Comando do BROX:
+menu --- habilita o menu de navegação
+start ----- executa um servidor local
+stop --------- para um servidor local
+cls ------------- limpa aria de saide
+cmd ---------- abre o terminal padrão          
+        `);
+      tela.render();
+    } else {
+      return process.exit(0);
+    }
+  }
+
+  function analisarMeno() {
+    if (
+      estadoMenu.estado &&
+      estadoMenu.menuAberto.posicao == 2 &&
+      estadoMenu.subMenu.nome == ""
+    ) {
+      saida.log("@>" + "Menu foi encerrado");
+      desativarTeclasEntrada(true);
+      estadoMenu.estado = false;
+      entrada.focus();
+    } else if(estadoMenu.menuAberto.posicao==0){
+      navegacao.setItems(tiposMenu(estadoMenu.menuAberto.posicao));
+    }else if(estadoMenu.menuAberto.posicao==1){
+      navegacao.setItems(tiposMenu(estadoMenu.menuAberto.posicao));
+    }
+  }
+
   /*eventos*/
   saida.key(["escape", "C-c", "f1"], function (ch, key) {
-    return process.exit(0);
+    comandosGlobais(key);
   });
   saida.key("tab", function (ch, key) {
     informação.focus();
   });
 
   entrada.key(["escape", "C-c", "f1"], function (ch, key) {
-    return process.exit(0);
+    comandosGlobais(key);
   });
   entrada.key("enter", () => {
+    informação.setValue("");
     validacaoDoInput();
   });
   entrada.key("tab", () => {
-    entrada.options.inputOnFocus = false;
-    caixaDaEntrada.options.style.border.fg = "#d9d9d9";
+    desativarTeclasEntrada(false);
     entrada.setValue("");
-    saida.focus();
+    navegacao.focus();
   });
 
   navegacao.key(["escape", "C-c", "f1"], function (ch, key) {
-    return process.exit(0);
+    comandosGlobais(key);
+  });
+  navegacao.on("select", (item, index) => {
+    estadoMenu.menuAberto.nome = item.getText();
+    estadoMenu.menuAberto.posicao = index;
+    analisarMeno();
+    tela.render();
   });
 
   informação.key(["escape", "C-c", "f1"], function (ch, key) {
-    return process.exit(0);
+    comandosGlobais(key);
   });
   informação.key("tab", function (ch, key) {
-    entrada.options.inputOnFocus = true;
-    caixaDaEntrada.options.style.border.fg = "#F21B2D";
+    desativarTeclasEntrada(true);
     entrada.focus();
   });
 

@@ -7,7 +7,7 @@
     "brox": "./cli.js"
   },
   "scripts": {
-    "start": "./cli.js"
+    "start": "cli.js"
   },
   "author": "Alexandre Junqueiro",
   "license": "ISC",
