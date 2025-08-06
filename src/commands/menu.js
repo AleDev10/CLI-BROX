@@ -1,22 +1,21 @@
 /*Variaveis globais */
-const menuPrincipal = ["Novo Projeto", "Servidores", "<-Voltar"];
-const menuNovoProjeto = ['Desktop','Mobile','Web','Servidor',"<-Voltar"];
-const Servidores = ['jovem-flex','<-Voltar']
+const menuPrincipal = ["Novo Projeto", "Servidores", "<-Encerrar"];
+const menuNovoProjeto = ['Desktop','Mobile','Web','BackEnd',"<-Voltar"];
+const Servidores = ['Adicionar','jovem-flex','<-Voltar']
 
 /*funções de navegação */
 function tiposMenu(posicao) {
     switch (posicao) {
         case 0:
             return menuNovoProjeto;
-            break;
         case 1:
             return Servidores;
-            break;
         default:
-            return '';
             break;
     }
 }
+
+
 
 function informacoesMenu() {
     return 'O comando {bold}MENU{/bold} tem a seguinte sintaxe:\n          [comando] [argumento] \ncomandos: menu; \nargumentos: ativar ou a;'

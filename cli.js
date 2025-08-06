@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
+/*Dependências externas */
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
 const giz = require("chalk");
 const { fonts } = require("figlet");
 const figlet = require("figlet");
 const pkg = require("./package.json");
+
+/*Dependências internas */
 const parser = require("yargs-parser");
 const {
   informacoesMenu,
@@ -22,14 +25,17 @@ let estadoMenu = {
     posicao: "",
   },
   subMenu: {
+    estado: false,
     nome: "",
     posicao: "",
   },
 };
+const teclasGlobais = ["escape", "C-c", "f1"];
 
 /*verificação do comando principal */
 if (argumento.includes("-v") || argumento.includes("--version")) {
   console.log(`brox v${pkg.version}`);
+  process.exit(0);
 } else {
   /*configurações gerais*/
   const tela = blessed.screen({
@@ -242,13 +248,8 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
   }
 
   function desativarTeclasEntrada(estado) {
-    if (estado) {
-      entrada.options.inputOnFocus = true;
-      caixaDaEntrada.options.style.border.fg = "#F21B2D";
-    } else {
-      entrada.options.inputOnFocus = false;
-      caixaDaEntrada.options.style.border.fg = "#d9d9d9";
-    }
+    entrada.options.inputOnFocus = estado;
+    caixaDaEntrada.options.style.border.fg = estado ? "#F21B2D" : "#d9d9d9";
   }
 
   function analisarComando(comando) {
@@ -256,36 +257,33 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
     const argumentoComando = comando._[1] || "";
     const comandoCompleto = `${comandoChave} ${argumentoComando}`;
 
-    if (comandoChave === "") {
+    if (comandoChave=='') {
       saida.log("@>");
-      return "";
-    } else if (argumentoComando !== "") {
+      rodarProjeto();
+      return;
+    }
+
+    if (argumentoComando) {
       switch (comandoCompleto) {
         case "menu ativar":
-          saida.log("@>" + "Menu foi ativado");
-          desativarTeclasEntrada(false);
-          estadoMenu.estado = true;
-          entrada.setValue('');
-          navegacao.focus();
-          return "";
         case "menu a":
+        case "m a":
           saida.log("@>" + "Menu foi ativado");
           desativarTeclasEntrada(false);
           estadoMenu.estado = true;
-          entrada.setValue('');
+          entrada.setValue("");
           navegacao.focus();
-          return "";
+          break;
         case "menu ?":
           saida.log("@>" + "Menu ?");
           informação.setValue(informacoesMenu());
           rodarProjeto();
-          return "";
+          break;
         default:
           saida.log(
             "@>" + "ERRO: Comando " + comandoCompleto + " desconhecido"
           );
           rodarProjeto();
-          return "";
       }
     } else {
       switch (comandoChave) {
@@ -293,25 +291,22 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
           saida.log("@>" + "Menu ?");
           informação.setValue(informacoesMenu());
           rodarProjeto();
-          return "";
+          break;
         case "cls":
           saida.setContent("");
           rodarProjeto();
-          return "";
+          break;
         default:
           saida.log(
             "@>" + "ERRO: Comando " + comandoCompleto + " desconhecido"
           );
           rodarProjeto();
-          return "";
       }
     }
   }
 
-  function comandosGlobais(key) {
-    if (key.name === "f1") {
-      informação.setValue("");
-      informação.setValue(`
+  function mostrarAjuda() {
+    informação.setValue(`
               Ajudo do BROX
 Sintaxe geral dos comandos
         [comando] [argumentos] [opções]
@@ -323,38 +318,57 @@ stop --------- para um servidor local
 cls ------------- limpa aria de saide
 cmd ---------- abre o terminal padrão          
         `);
-      tela.render();
+    tela.render();
+  }
+
+  function comandosGlobais(key) {
+    if (key.name === "f1") {
+      mostrarAjuda();
     } else {
-      return process.exit(0);
+      process.exit(0);
+    }
+  }
+
+  function tratarSelecao(item, index) {
+    if (menuPrincipal.includes(item.getText())) {
+      estadoMenu.menuAberto.nome = item.getText();
+      estadoMenu.menuAberto.posicao = index;
+    } else {
+      estadoMenu.subMenu.estado = true;
+      estadoMenu.subMenu.nome = item.getText();
+      estadoMenu.subMenu.posicao = index;
     }
   }
 
   function analisarMeno() {
-    if (
-      estadoMenu.estado &&
-      estadoMenu.menuAberto.posicao == 2 &&
-      estadoMenu.subMenu.nome == ""
-    ) {
+    const { estado, menuAberto, subMenu } = estadoMenu;
+    if (estado && menuAberto.posicao == 2 && menuAberto.nome == "<-Encerrar") {
       saida.log("@>" + "Menu foi encerrado");
       desativarTeclasEntrada(true);
       estadoMenu.estado = false;
-      entrada.focus();
-    } else if(estadoMenu.menuAberto.posicao==0){
-      navegacao.setItems(tiposMenu(estadoMenu.menuAberto.posicao));
-    }else if(estadoMenu.menuAberto.posicao==1){
-      navegacao.setItems(tiposMenu(estadoMenu.menuAberto.posicao));
+      entrada.focus(); 
+    }else if ([0, 1].includes(menuAberto.posicao) && !subMenu.estado) {
+      saida.log("@>" + "Menu " + menuAberto.nome + " foi selecionado");
+      navegacao.setItems(tiposMenu(menuAberto.posicao));
+    }else{
+      saida.log("@>" + "Submenu " + subMenu.nome + " vai ser executado");
+      navegacao.setItems(["Novo Projeto", "Servidores", "<-Encerrar"]);
+      estadoMenu.subMenu.estado = false;
+      estadoMenu.estado = false;
+      desativarTeclasEntrada(true);
+      rodarProjeto();
     }
   }
 
   /*eventos*/
-  saida.key(["escape", "C-c", "f1"], function (ch, key) {
+  saida.key(teclasGlobais, function (ch, key) {
     comandosGlobais(key);
   });
   saida.key("tab", function (ch, key) {
     informação.focus();
   });
 
-  entrada.key(["escape", "C-c", "f1"], function (ch, key) {
+  entrada.key(teclasGlobais, function (ch, key) {
     comandosGlobais(key);
   });
   entrada.key("enter", () => {
@@ -364,20 +378,19 @@ cmd ---------- abre o terminal padrão
   entrada.key("tab", () => {
     desativarTeclasEntrada(false);
     entrada.setValue("");
-    navegacao.focus();
+    saida.focus();
   });
 
-  navegacao.key(["escape", "C-c", "f1"], function (ch, key) {
+  navegacao.key(teclasGlobais, function (ch, key) {
     comandosGlobais(key);
   });
   navegacao.on("select", (item, index) => {
-    estadoMenu.menuAberto.nome = item.getText();
-    estadoMenu.menuAberto.posicao = index;
+    tratarSelecao(item, index);
     analisarMeno();
     tela.render();
   });
 
-  informação.key(["escape", "C-c", "f1"], function (ch, key) {
+  informação.key(teclasGlobais, function (ch, key) {
     comandosGlobais(key);
   });
   informação.key("tab", function (ch, key) {
@@ -385,8 +398,7 @@ cmd ---------- abre o terminal padrão
     entrada.focus();
   });
 
-  /*Adiciona o elemento principal à tela */
+  /*Adiciona o elemento principal à tela e executar o projeto */
   tela.append(caixaPrincipal);
-
   rodarProjeto();
 }
