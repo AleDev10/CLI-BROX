@@ -195,7 +195,7 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
 
   const navegacao = blessed.list({
     parent: caixaPrincipal,
-    items: menuPrincipal,
+    items: [],
     top: "24%",
     right: 2,
     width: "44%",
@@ -257,7 +257,7 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
     const argumentoComando = comando._[1] || "";
     const comandoCompleto = `${comandoChave} ${argumentoComando}`;
 
-    if (comandoChave=='') {
+    if (comandoChave == "") {
       saida.log("@>");
       rodarProjeto();
       return;
@@ -270,8 +270,8 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
         case "m a":
           saida.log("@>" + "Menu foi ativado");
           desativarTeclasEntrada(false);
-          estadoMenu.estado = true;
           entrada.setValue("");
+          navegacao.setItems(menuPrincipal);
           navegacao.focus();
           break;
         case "menu ?":
@@ -330,9 +330,14 @@ cmd ---------- abre o terminal padrão
   }
 
   function tratarSelecao(item, index) {
-    if (menuPrincipal.includes(item.getText())) {
+    if (
+      menuPrincipal.includes(item.getText()) &&
+      estadoMenu.estado !== true
+    ) {
+      estadoMenu.estado = true;
       estadoMenu.menuAberto.nome = item.getText();
       estadoMenu.menuAberto.posicao = index;
+      
     } else {
       estadoMenu.subMenu.estado = true;
       estadoMenu.subMenu.nome = item.getText();
@@ -340,23 +345,80 @@ cmd ---------- abre o terminal padrão
     }
   }
 
-  function analisarMeno() {
-    const { estado, menuAberto, subMenu } = estadoMenu;
-    if (estado && menuAberto.posicao == 2 && menuAberto.nome == "<-Encerrar") {
-      saida.log("@>" + "Menu foi encerrado");
-      desativarTeclasEntrada(true);
-      estadoMenu.estado = false;
-      entrada.focus(); 
-    }else if ([0, 1].includes(menuAberto.posicao) && !subMenu.estado) {
-      saida.log("@>" + "Menu " + menuAberto.nome + " foi selecionado");
-      navegacao.setItems(tiposMenu(menuAberto.posicao));
-    }else{
-      saida.log("@>" + "Submenu " + subMenu.nome + " vai ser executado");
-      navegacao.setItems(["Novo Projeto", "Servidores", "<-Encerrar"]);
-      estadoMenu.subMenu.estado = false;
-      estadoMenu.estado = false;
+  function nada() {
+    tela.destroy();
+    console.log("mensagem", estadoMenu);
+  }
+
+  function resetarEstadoMenu() {
+    estadoMenu = {
+      estado: false,
+      menuAberto: {
+        nome: "",
+        posicao: "",
+      },
+      subMenu: {
+        estado: false,
+        nome: "",
+        posicao: "",
+      },
+    };
+  }
+
+  function executarSubMenu(submenu) {
+    switch (submenu) {
+      case 'Desktop':
+        saida.log("@>terminal do Desktop");
+        break;
+      case 'Mobile':
+        saida.log("@>terminal do Mobile");
+        break;
+      case 'Web':
+        saida.log("@>terminal do Web");
+        break;
+      case 'BackEnd':
+        saida.log("@>terminal do BackEnd");
+        break;
+      case 'Adicionar':
+        saida.log("@>terminal do Adicionar");
+        break;
+      case 'jovem-flex':
+        saida.log("@>terminal do jovem-flex");
+        break;
+      case '<-Voltar':
+        saida.log("@>voltar para menu");
+        navegacao.setItems(["Novo Projeto", "Servidores", "<-Encerrar"]);
+        resetarEstadoMenu();
+        break;
+      default:
+        saida.log("@>opção selecionada no submenu invalida");
+        break;
+    }
+
+    if (submenu!=='<-Voltar') {
+      navegacao.setItems([]);
+      estadoMenu.estado=false;
       desativarTeclasEntrada(true);
       rodarProjeto();
+      resetarEstadoMenu();
+    }
+  }
+
+  function analisarMeno() {
+    const { estado, menuAberto, subMenu } = estadoMenu;
+    if (menuAberto.posicao == 2 && menuAberto.nome == "<-Encerrar") {
+      saida.log("@>Menu foi encerrado");
+      navegacao.setItems([]);
+      desativarTeclasEntrada(true);
+      entrada.focus();
+      resetarEstadoMenu();
+    } else if (menuPrincipal.includes(menuAberto.nome) && subMenu.estado!==true) {
+      saida.log("@>" + "Menu " + menuAberto.nome + " foi selecionado");
+      navegacao.setItems(tiposMenu(menuAberto.posicao));
+    } else {
+      saida.log("@>" + "Submenu " + subMenu.nome + " vai ser executado");
+      executarSubMenu(subMenu.nome);
+      
     }
   }
 
