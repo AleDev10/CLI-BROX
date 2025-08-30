@@ -7,6 +7,7 @@ const giz = require("chalk");
 const { fonts } = require("figlet");
 const figlet = require("figlet");
 const pkg = require("./package.json");
+const fs = require('fs-extra');
 
 /*Dependências internas */
 const parser = require("yargs-parser");
@@ -15,6 +16,7 @@ const {
   tiposMenu,
   menuPrincipal,
 } = require("./src/commands/menu");
+const { exec } = require("child_process");
 
 /*variaveis globais*/
 const argumento = process.argv.slice(2);
@@ -365,10 +367,20 @@ cmd ---------- abre o terminal padrão
     };
   }
 
+  function abrirTerminal() {
+    exec('start cmd.exe /k "cd /d C:/Users/AGROJESANT/Documents/Desenvolvimento"');
+  }
+
+  async function copiarPasta(pasta) {
+    await fs.copy('C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/tamplestes/desktop',`C:/Users/AGROJESANT/Documents/Desenvolvimento/${pasta}`);
+  }
+
   function executarSubMenu(submenu) {
     switch (submenu) {
       case 'Desktop':
         saida.log("@>terminal do Desktop");
+        copiarPasta('novaPasta');
+        abrirTerminal();
         break;
       case 'Mobile':
         saida.log("@>terminal do Mobile");
