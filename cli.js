@@ -7,7 +7,7 @@ const giz = require("chalk");
 const { fonts } = require("figlet");
 const figlet = require("figlet");
 const pkg = require("./package.json");
-const fs = require('fs-extra');
+const fs = require('fs-extra'); 
 
 /*Dependências internas */
 const parser = require("yargs-parser");
@@ -33,6 +33,8 @@ let estadoMenu = {
   },
 };
 const teclasGlobais = ["escape", "C-c", "f1"];
+const arquivoTemp = 'C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/resource/mensagens.json';
+let tipoDeSubmenu= '';
 
 /*verificação do comando principal */
 if (argumento.includes("-v") || argumento.includes("--version")) {
@@ -347,11 +349,6 @@ cmd ---------- abre o terminal padrão
     }
   }
 
-  function nada() {
-    tela.destroy();
-    console.log("mensagem", estadoMenu);
-  }
-
   function resetarEstadoMenu() {
     estadoMenu = {
       estado: false,
@@ -367,35 +364,116 @@ cmd ---------- abre o terminal padrão
     };
   }
 
-  function abrirTerminal() {
-    exec('start cmd.exe /k "cd /d C:/Users/AGROJESANT/Documents/Desenvolvimento"');
+  function abrirProjeto(caminho) {
+    exec(`start cmd.exe /k cd ${caminho}`);
+  }
+
+  function escolherOrigemPasta(submenu) {
+    let caminho = '';
+    switch (submenu) {
+      case 'Desktop':
+        caminho = 'C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/tamplestes/desktop';
+        break;
+      case 'Mobile':
+        caminho = 'C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/tamplestes/mobile';
+        break;
+      case 'Web':
+        caminho = 'C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/tamplestes/web';
+        break;
+      case 'BackEnd':
+        caminho = 'C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/tamplestes/server';
+        break;
+      default:
+        saida.log("@>opção selecionada no submenu invalida");
+        break;
+    }
+    tipoDeSubmenu='';
+    return caminho;
   }
 
   async function copiarPasta(pasta) {
-    await fs.copy('C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/tamplestes/desktop',`C:/Users/AGROJESANT/Documents/Desenvolvimento/${pasta}`);
+    let caminho =`C:/Users/AGROJESANT/Documents/Desenvolvimento/${pasta}`;
+    let origem = escolherOrigemPasta(tipoDeSubmenu);
+    await fs.copy(origem,caminho);
+    abrirProjeto(caminho);
+  }
+
+  async function verificarMSG() {
+    if (await fs.pathExists(arquivoTemp)) {
+      try {
+        const dados = await fs.readJSON(arquivoTemp);
+        copiarPasta(dados.nome);
+        saida.log(`Projeto ${dados.nome} criado`);
+      } catch (err) {
+        saida.log('ERRO ao ler mensagem');
+      }
+    }
+    
+  }
+
+  async function abrirquestionario() {
+    await fs.writeJSON(arquivoTemp,{},{spaces:2});
+    try {
+      exec('start cmd.exe /c node C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/resource/infoProjetos.js');
+      const intervalo = setInterval(async () => {
+        const dados = await fs.readJSON(arquivoTemp);
+        if (Object.keys(dados).length>0) {
+          clearInterval(intervalo);
+          verificarMSG();
+        }
+      }, 1000);
+    } catch (error) {
+      saida.log('ERRO: abrir ao terminal')
+    }
+    
+  }
+
+  function executarServidor(caminho) {
+    exec(`start cmd.exe /k node ${caminho}`);
+  }
+
+  function escolherServidor(submenu) {
+    let caminho;
+    switch (submenu) {
+      case 'jovem-flex':
+        caminho = 'C:/Users/AGROJESANT/Documents/Desenvolvimento/Jovem-Flex/server/index.js';
+        break;
+      default:
+         saida.log("@>opção selecionada no submenu invalida");
+        break;
+    }
+
+    executarServidor(caminho);
   }
 
   function executarSubMenu(submenu) {
     switch (submenu) {
       case 'Desktop':
-        saida.log("@>terminal do Desktop");
-        copiarPasta('novaPasta');
-        abrirTerminal();
+        saida.log("@>Gerando projeto para Desktop");
+        tipoDeSubmenu=submenu;
+        abrirquestionario();
         break;
       case 'Mobile':
-        saida.log("@>terminal do Mobile");
+        saida.log("@>Gerando projeto para Mobile");
+        tipoDeSubmenu=submenu;
+        abrirquestionario();
         break;
       case 'Web':
-        saida.log("@>terminal do Web");
+        saida.log("@>Gerando projeto para Web");
+        tipoDeSubmenu=submenu;
+        abrirquestionario();
         break;
       case 'BackEnd':
-        saida.log("@>terminal do BackEnd");
+        saida.log("@>Gerando projeto para BackEnd");
+        tipoDeSubmenu=submenu;
+        abrirquestionario();
         break;
       case 'Adicionar':
-        saida.log("@>terminal do Adicionar");
+        saida.log("@>Adicionando um novo servidor");
         break;
       case 'jovem-flex':
-        saida.log("@>terminal do jovem-flex");
+        saida.log("@>executando servidor jovem-flex");
+        escolherServidor(submenu);
         break;
       case '<-Voltar':
         saida.log("@>voltar para menu");
