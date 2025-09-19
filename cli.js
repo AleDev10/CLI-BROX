@@ -428,15 +428,20 @@ cmd ---------- abre o terminal padrão
     
   }
 
+  ///passe 4 fim do processo
   function executarServidor(caminho) {
     exec(`start cmd.exe /k node ${caminho}`);
   }
 
+  //passe 3 depois aqui
   function escolherServidor(submenu) {
     let caminho;
     switch (submenu) {
       case 'jovem-flex':
         caminho = 'C:/Users/AGROJESANT/Documents/Desenvolvimento/Jovem-Flex/server/index.js';
+        break;
+      case 'rede-secreta':
+        caminho = 'C:/Users/AGROJESANT/Documents/Desenvolvimento/RedeSecreta/server/index.js';
         break;
       default:
          saida.log("@>opção selecionada no submenu invalida");
@@ -446,6 +451,7 @@ cmd ---------- abre o terminal padrão
     executarServidor(caminho);
   }
 
+  //passe 2 depois por aqui
   function executarSubMenu(submenu) {
     switch (submenu) {
       case 'Desktop':
@@ -473,6 +479,10 @@ cmd ---------- abre o terminal padrão
         break;
       case 'jovem-flex':
         saida.log("@>executando servidor jovem-flex");
+        escolherServidor(submenu);
+        break;
+      case 'rede-secreta':
+        saida.log("@>executando servidor rede-secreta");
         escolherServidor(submenu);
         break;
       case '<-Voltar':

@@ -1,7 +1,9 @@
 /*Variaveis globais */
 const menuPrincipal = ["Novo Projeto", "Servidores", "<-Encerrar"];
 const menuNovoProjeto = ['Desktop','Mobile','Web','BackEnd',"<-Voltar"];
-const Servidores = ['Adicionar','jovem-flex','<-Voltar']
+
+//passe 1 comece adicionar por aqui
+const Servidores = ['Adicionar','jovem-flex','rede-secreta','<-Voltar']
 
 /*funções de navegação */
 function tiposMenu(posicao) {
