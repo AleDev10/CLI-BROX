@@ -8,6 +8,7 @@ const { fonts } = require("figlet");
 const figlet = require("figlet");
 const pkg = require("./package.json");
 const fs = require('fs-extra'); 
+const database = require('better-sqlite3');
 
 /*Dependências internas */
 const parser = require("yargs-parser");
@@ -36,6 +37,21 @@ const teclasGlobais = ["escape", "C-c", "f1"];
 const arquivoTemp = 'C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/resource/mensagens.json';
 let tipoDeSubmenu= '';
 
+//configurações do db
+const db = new database('C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/db/cli-brox.db');
+db.prepare(`create table if not exists pastas(
+    id integer primary key autoincrement,
+    nome text,
+    caminho text,
+    tipo text,
+    funcao text
+);`).run();
+
+//funções do db
+function receberDados(dados) {
+  let enviar = db.prepare(`select * from pastas;`);
+  enviar.run(dados.nome,dados.caminho,dados.tipo,dados.funcao);
+}
 /*verificação do comando principal */
 if (argumento.includes("-v") || argumento.includes("--version")) {
   console.log(`brox v${pkg.version}`);
@@ -184,7 +200,7 @@ if (argumento.includes("-v") || argumento.includes("--version")) {
     border: { type: "line" },
     label: "Processamento",
     orientation: "horizontal",
-    filled: 50,
+    filled: 0,
     ch: "█",
     value: 0,
     style: {
@@ -365,7 +381,32 @@ cmd ---------- abre o terminal padrão
   }
 
   function abrirProjeto(caminho) {
-    exec(`start cmd.exe /k cd ${caminho}`);
+      exec(`start cmd.exe /k cd ${caminho}`);
+  }
+
+  ///passe 5 fim do processo
+  function executarServidor(caminho) {
+    exec(`start cmd.exe /k node ${caminho}`);
+  }
+
+  //passe 4 depois
+  function tempoDeProcesso(caminho,acao) {
+    let incrementoTempo = 0;
+    const intervalo = setInterval(()=>{
+      incrementoTempo += 1;
+      processamento.setProgress(incrementoTempo);
+      tela.render();
+
+      if (incrementoTempo >= 100) {
+        clearInterval(intervalo);
+        processamento.reset();
+        if (acao == 'abrir projeto') {
+          abrirProjeto(caminho);
+        } else {
+          executarServidor(caminho);
+        }
+      }
+    },100);
   }
 
   function escolherOrigemPasta(submenu) {
@@ -395,7 +436,7 @@ cmd ---------- abre o terminal padrão
     let caminho =`C:/Users/AGROJESANT/Documents/Desenvolvimento/${pasta}`;
     let origem = escolherOrigemPasta(tipoDeSubmenu);
     await fs.copy(origem,caminho);
-    abrirProjeto(caminho);
+    tempoDeProcesso(caminho,'abrir projeto');
   }
 
   async function verificarMSG() {
@@ -428,11 +469,6 @@ cmd ---------- abre o terminal padrão
     
   }
 
-  ///passe 4 fim do processo
-  function executarServidor(caminho) {
-    exec(`start cmd.exe /k node ${caminho}`);
-  }
-
   //passe 3 depois aqui
   function escolherServidor(submenu) {
     let caminho;
@@ -448,7 +484,7 @@ cmd ---------- abre o terminal padrão
         break;
     }
 
-    executarServidor(caminho);
+    tempoDeProcesso(caminho,'executar servidor');
   }
 
   //passe 2 depois por aqui
@@ -476,6 +512,7 @@ cmd ---------- abre o terminal padrão
         break;
       case 'Adicionar':
         saida.log("@>Adicionando um novo servidor");
+        exec('start cmd.exe /k node C:/Users/AGROJESANT/Documents/Desenvolvimento/CLI-BROX/src/resource/addServidor.js');
         break;
       case 'jovem-flex':
         saida.log("@>executando servidor jovem-flex");
